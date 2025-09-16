@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Trophy, Calendar, Clock, MapPin, Users, Target, Award, ChevronDown, ChevronUp } from 'lucide-react';
+import ErrorBanner from './ui/ErrorBanner.jsx';
 
-const API_URL = 'http://localhost:5001'; // ajuste se necessário
+const API = 'http://localhost:5001/api';
 
 const TournamentPage = () => {
   const [selectedGroup, setSelectedGroup] = useState('A');
@@ -10,28 +11,33 @@ const TournamentPage = () => {
   const [standings, setStandings] = useState([]);
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true);
       try {
-        // Mock data - in real app, this would be fetch calls
+        setLoading(true);
+        const response = await fetch(`${API}/tournament`);
+        
+        if (!response.ok) {
+          let body = {};
+          try { body = await response.json(); } catch {}
+          throw new Error(body.error || response.statusText || 'Falha na solicitação');
+        }
+        
+        const data = await response.json();
+        setMatches(data.matches || []);
+        
+        // Mock standings for demo (in real app, this would come from API)
         const mockStandings = [
           { group_id: 1, team_id: 1, team_name: 'Leoas da Vila', played: 3, won: 3, drawn: 0, lost: 0, gf: 8, ga: 2, gd: 6, points: 9 },
           { group_id: 1, team_id: 2, team_name: 'Valkirias FC', played: 3, won: 2, drawn: 1, lost: 0, gf: 7, ga: 1, gd: 6, points: 7 },
           { group_id: 1, team_id: 3, team_name: 'Furacão Rosa', played: 3, won: 1, drawn: 0, lost: 2, gf: 4, ga: 6, gd: -2, points: 3 },
           { group_id: 1, team_id: 4, team_name: 'Tigres do Sul', played: 3, won: 0, drawn: 1, lost: 2, gf: 2, ga: 12, gd: -10, points: 1 },
         ];
-        
-        const mockMatches = [
-          { id: 1, tournament_id: 1, group_id: 1, round: 'group', date: '2024-03-15', time: '14:00', venue: 'Campo da Vila', home_team_id: 1, away_team_id: 2, home_score: 2, away_score: 1, status: 'finished', home_team: { name: 'Leoas da Vila' }, away_team: { name: 'Valkirias FC' } },
-          { id: 2, tournament_id: 1, group_id: 1, round: 'group', date: '2024-03-15', time: '16:00', venue: 'Campo da Vila', home_team_id: 3, away_team_id: 4, home_score: 1, away_score: 0, status: 'finished', home_team: { name: 'Furacão Rosa' }, away_team: { name: 'Tigres do Sul' } },
-        ];
-        
         setStandings(mockStandings);
-        setMatches(mockMatches);
-      } catch (error) {
-        console.error('Error fetching tournament data:', error);
+      } catch (err) {
+        setError(err.message);
       } finally {
         setLoading(false);
       }
@@ -81,6 +87,8 @@ const TournamentPage = () => {
           Acompanhe classificação, jogos e resultados da Copa PassaBola 2024
         </p>
       </div>
+
+      {error && <ErrorBanner message={error} />}
 
       {/* Tournament Status */}
       <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl p-6 mb-8">

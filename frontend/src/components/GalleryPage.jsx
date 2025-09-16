@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Camera, Filter, Search, X, Heart, Share, Download, Calendar, MapPin } from 'lucide-react';
+import ErrorBanner from './ui/ErrorBanner.jsx';
 
-const API_URL = 'http://localhost:5001'; // ajuste se necessário
+const API = 'http://localhost:5001/api';
 
 const GalleryPage = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -10,17 +11,29 @@ const GalleryPage = () => {
   const [likedPhotos, setLikedPhotos] = useState(new Set());
   const [photos, setPhotos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchPhotos = async () => {
-      setLoading(true);
       try {
-        // Mock data - in real app, this would be a fetch call
+        setLoading(true);
+        const response = await fetch(`${API}/gallery`);
+        
+        if (!response.ok) {
+          let body = {};
+          try { body = await response.json(); } catch {}
+          throw new Error(body.error || response.statusText || 'Falha na solicitação');
+        }
+        
+        const data = await response.json();
+        
+        // Mock additional data for demo (in real app, this would come from API)
         const mockPhotos = [
-          { id: 1, url: 'https://picsum.photos/400/400?random=1', title: 'Gol da Vitória', date: '2024-03-15', location: 'Campo da Vila', category: 'matches', likes: 45, description: 'Momento emocionante do gol que definiu a partida' },
-          { id: 2, url: 'https://picsum.photos/400/400?random=2', title: 'Comemoração das Jogadoras', date: '2024-03-15', location: 'Campo da Vila', category: 'celebrations', likes: 32, description: 'Alegria das atletas após a vitória' },
-          { id: 3, url: 'https://picsum.photos/400/400?random=3', title: 'Time Leoas da Vila', date: '2024-03-10', location: 'Campo da Vila', category: 'teams', likes: 28, description: 'Foto oficial do time antes da partida' },
-          { id: 4, url: 'https://picsum.photos/400/400?random=4', title: 'Bastidores', date: '2024-03-15', location: 'Vestiário', category: 'backstage', likes: 15, description: 'Momento de preparação antes do jogo' },
+          { id: 1, url: 'https://picsum.photos/400/400?random=1', caption: 'Gol da Vitória', date: '2024-03-15', location: 'Campo da Vila', category: 'matches', likes: 45, description: 'Momento emocionante do gol que definiu a partida' },
+          { id: 2, url: 'https://picsum.photos/400/400?random=2', caption: 'Comemoração das Jogadoras', date: '2024-03-15', location: 'Campo da Vila', category: 'celebrations', likes: 32, description: 'Alegria das atletas após a vitória' },
+          { id: 3, url: 'https://picsum.photos/400/400?random=3', caption: 'Time Leoas da Vila', date: '2024-03-10', location: 'Campo da Vila', category: 'teams', likes: 28, description: 'Foto oficial do time antes da partida' },
+          { id: 4, url: 'https://picsum.photos/400/400?random=4', caption: 'Bastidores', date: '2024-03-15', location: 'Vestiário', category: 'backstage', likes: 15, description: 'Momento de preparação antes do jogo' },
+          ...data
         ];
         
         const filteredPhotos = selectedCategory === 'all' 
@@ -28,8 +41,8 @@ const GalleryPage = () => {
           : mockPhotos.filter(photo => photo.category === selectedCategory);
         
         setPhotos(filteredPhotos);
-      } catch (error) {
-        console.error('Error fetching photos:', error);
+      } catch (err) {
+        setError(err.message);
       } finally {
         setLoading(false);
       }
@@ -47,7 +60,7 @@ const GalleryPage = () => {
   ];
 
   const filteredPhotos = photos.filter(photo => {
-    const matchesSearch = (photo.title?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = (photo.title?.toLowerCase() || photo.caption?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
                          (photo.description?.toLowerCase() || '').includes(searchTerm.toLowerCase());
     return matchesSearch;
   });
@@ -122,6 +135,8 @@ const GalleryPage = () => {
         </div>
       </div>
 
+      {error && <ErrorBanner message={error} />}
+
       {/* Photo Grid */}
       {loading ? (
         <div className="text-center py-12">
@@ -139,7 +154,7 @@ const GalleryPage = () => {
             <div className="aspect-square overflow-hidden">
               <img
                 src={photo.url}
-                alt={photo.title}
+                alt={photo.title || photo.caption}
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
               />
             </div>
@@ -147,7 +162,7 @@ const GalleryPage = () => {
             {/* Overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
               <div className="absolute bottom-4 left-4 right-4 text-white">
-                <h3 className="font-bold text-lg mb-1 line-clamp-2">{photo.title || 'Sem título'}</h3>
+                <h3 className="font-bold text-lg mb-1 line-clamp-2">{photo.title || photo.caption || 'Sem título'}</h3>
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center space-x-1">
                     <Calendar className="h-4 w-4" />
@@ -215,7 +230,7 @@ const GalleryPage = () => {
               <div className="aspect-video overflow-hidden">
                 <img
                   src={selectedPhoto.url}
-                  alt={selectedPhoto.title}
+                  alt={selectedPhoto.title || selectedPhoto.caption}
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -224,7 +239,7 @@ const GalleryPage = () => {
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                      {selectedPhoto.title || 'Sem título'}
+                      {selectedPhoto.title || selectedPhoto.caption || 'Sem título'}
                     </h2>
                     <p className="text-gray-600 mb-4">{selectedPhoto.description || 'Sem descrição'}</p>
                     

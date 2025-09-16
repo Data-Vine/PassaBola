@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Radio, Play, Clock, MapPin, Users, Trophy, Target, AlertCircle, Calendar } from 'lucide-react';
+import ErrorBanner from './ui/ErrorBanner.jsx';
 
-const API_URL = 'http://localhost:5001'; // ajuste se necessário
+const API = 'http://localhost:5001/api';
 
 const LivePanelPage = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -9,6 +10,7 @@ const LivePanelPage = () => {
   const [liveMatches, setLiveMatches] = useState([]);
   const [upcomingMatches, setUpcomingMatches] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   // Update current time every second
   useEffect(() => {
@@ -22,9 +24,19 @@ const LivePanelPage = () => {
   // Fetch matches data
   useEffect(() => {
     const fetchMatches = async () => {
-      setLoading(true);
       try {
-        // Mock data - in real app, this would be fetch calls
+        setLoading(true);
+        const response = await fetch(`${API}/live`);
+        
+        if (!response.ok) {
+          let body = {};
+          try { body = await response.json(); } catch {}
+          throw new Error(body.error || response.statusText || 'Falha na solicitação');
+        }
+        
+        const data = await response.json();
+        
+        // Mock data for demo (in real app, this would come from API)
         const mockLiveMatches = [
           { id: 1, tournament_id: 1, group_id: 1, round: 'quarterfinal', date: '2024-03-15', time: '15:00', venue: 'Campo da Vila', home_team_id: 1, away_team_id: 2, home_score: 1, away_score: 0, status: 'live', home_team: { name: 'Leoas da Vila' }, away_team: { name: 'Valkirias FC' } }
         ];
@@ -36,8 +48,8 @@ const LivePanelPage = () => {
         
         setLiveMatches(mockLiveMatches);
         setUpcomingMatches(mockUpcomingMatches);
-      } catch (error) {
-        console.error('Error fetching matches:', error);
+      } catch (err) {
+        setError(err.message);
       } finally {
         setLoading(false);
       }
@@ -175,6 +187,8 @@ const LivePanelPage = () => {
         </p>
       </div>
 
+      {error && <ErrorBanner message={error} />}
+
       {/* Live Status Bar */}
       <div className="bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-xl p-4 mb-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between">
@@ -213,7 +227,7 @@ const LivePanelPage = () => {
           ) : (
             <div className="text-center py-12 text-gray-500">
               <Radio className="h-16 w-16 mx-auto mb-4 opacity-50" />
-              <p className="text-lg mb-2">Nenhum jogo ao vivo no momento</p>
+              <p className="text-lg mb-2">Nenhum jogo ao vivo agora</p>
               <p>Acompanhe os próximos jogos abaixo</p>
             </div>
           )}

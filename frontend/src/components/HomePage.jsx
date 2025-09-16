@@ -1,27 +1,29 @@
 import React from 'react';
 import { Trophy, Users, Calendar, MapPin, Star, ChevronRight, Play, Target } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
-const HomePage = ({ onNavigate }) => {
+const HomePage = () => {
+  const navigate = useNavigate();
   const features = [
     {
       icon: Users,
       title: 'Inscrições Online',
       description: 'Cadastre seu time de forma rápida e segura',
-      action: () => onNavigate('registration'),
+      action: () => navigate('/registration'),
       color: 'green'
     },
     {
       icon: Trophy,
       title: 'Tabela Atualizada',
       description: 'Acompanhe jogos, resultados e classificação',
-      action: () => onNavigate('tournament'),
+      action: () => navigate('/tournament'),
       color: 'purple'
     },
     {
       icon: Play,
       title: 'Transmissão Ao Vivo',
       description: 'Siga os jogos em tempo real',
-      action: () => onNavigate('live'),
+      action: () => navigate('/live'),
       color: 'orange'
     }
   ];
@@ -49,7 +51,7 @@ const HomePage = ({ onNavigate }) => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button 
-                onClick={() => onNavigate('registration')}
+                onClick={() => navigate('/registration')}
                 className="bg-yellow-400 text-gray-900 px-8 py-4 rounded-full text-lg font-bold hover:bg-yellow-300 transition-all duration-300 transform hover:scale-105 flex items-center justify-center space-x-2"
               >
                 <Users className="h-5 w-5" />
@@ -57,7 +59,7 @@ const HomePage = ({ onNavigate }) => {
                 <ChevronRight className="h-5 w-5" />
               </button>
               <button 
-                onClick={() => onNavigate('live')}
+                onClick={() => navigate('/live')}
                 className="bg-white/20 text-white px-8 py-4 rounded-full text-lg font-bold hover:bg-white/30 transition-all duration-300 border-2 border-white/30 flex items-center justify-center space-x-2"
               >
                 <Play className="h-5 w-5" />
@@ -184,7 +186,7 @@ const HomePage = ({ onNavigate }) => {
                   </div>
                 </div>
                 <button 
-                  onClick={() => onNavigate('registration')}
+                  onClick={() => navigate('/registration')}
                   className="bg-gradient-to-r from-green-500 to-purple-500 text-white px-6 py-3 rounded-full font-bold hover:from-green-600 hover:to-purple-600 transition-all duration-300 transform hover:scale-105 mt-6"
                 >
                   Inscrever Time Agora
@@ -212,7 +214,7 @@ const HomePage = ({ onNavigate }) => {
               Inscrever Meu Time
             </button>
             <button 
-              onClick={() => onNavigate('tournament')}
+                onClick={() => navigate('/tournament')}
               className="bg-white/20 text-white px-8 py-4 rounded-full text-lg font-bold hover:bg-white/30 transition-all duration-300 border-2 border-white/30"
             >
               Ver Tabela Completa

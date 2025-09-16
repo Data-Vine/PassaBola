@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Users, Mail, Phone, MapPin, Calendar, Trophy, CheckCircle, AlertCircle, Upload, FileText, Camera, User } from 'lucide-react';
+import ErrorBanner from './ui/ErrorBanner.jsx';
 
-const API_URL = 'http://localhost:5001'; // ajuste se necessário
+const API = 'http://localhost:5001/api';
 
 const RegistrationPage = () => {
   const [formData, setFormData] = useState({
@@ -20,7 +21,35 @@ const RegistrationPage = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [submitError, setSubmitError] = useState(null);
+  const [submitError, setSubmitError] = useState('');
+  const [teams, setTeams] = useState([]);
+  const [teamsLoading, setTeamsLoading] = useState(true);
+  const [teamsError, setTeamsError] = useState('');
+
+  // Fetch teams on mount
+  useEffect(() => {
+    const fetchTeams = async () => {
+      try {
+        setTeamsLoading(true);
+        const response = await fetch(`${API}/teams`);
+        
+        if (!response.ok) {
+          let body = {};
+          try { body = await response.json(); } catch {}
+          throw new Error(body.error || response.statusText || 'Falha na solicitação');
+        }
+        
+        const data = await response.json();
+        setTeams(data);
+      } catch (err) {
+        setTeamsError(err.message);
+      } finally {
+        setTeamsLoading(false);
+      }
+    };
+
+    fetchTeams();
+  }, []);
 
   // Validation helpers
   function validateCPF(cpf) {
@@ -84,11 +113,17 @@ const RegistrationPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitError(null);
+    setSubmitError('');
     setIsLoading(true);
     
     try {
       // Validate required fields
+      if (!formData.teamName.trim()) {
+        setSubmitError('Nome do time é obrigatório');
+        setIsLoading(false);
+        return;
+      }
+
       if (players.length === 0) {
         setSubmitError('Pelo menos uma jogadora deve ser cadastrada');
         setIsLoading(false);
@@ -104,13 +139,29 @@ const RegistrationPage = () => {
         }
       }
 
-      // Mock registration - in real app, this would be a fetch call
-      // For now, we'll simulate success after a delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
+      // Submit team registration
+      const response = await fetch(`${API}/teams`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.teamName,
+          city: formData.neighborhood || null,
+        }),
+      });
+
+      if (!response.ok) {
+        let body = {};
+        try { body = await response.json(); } catch {}
+        throw new Error(body.error || response.statusText || 'Falha na solicitação');
+      }
+
+      const newTeam = await response.json();
+      setTeams(prev => [...prev, newTeam]);
       setIsSubmitted(true);
     } catch (error) {
-      setSubmitError('Erro ao processar inscrição. Tente novamente.');
+      setSubmitError(error.message);
       console.error('Registration error:', error);
     } finally {
       setIsLoading(false);
@@ -584,15 +635,8 @@ const RegistrationPage = () => {
         )}
 
         {/* Error Display */}
-        {submitError && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-            <div className="flex items-center space-x-2">
-              <AlertCircle className="h-5 w-5 text-red-600" />
-              <p className="text-red-800 font-medium">Erro na Inscrição</p>
-            </div>
-            <p className="text-red-700 mt-2">{submitError}</p>
-          </div>
-        )}
+        {submitError && <ErrorBanner message={submitError} />}
+        {teamsError && <ErrorBanner message={teamsError} />}
 
         {/* Navigation Buttons */}
         <div className="flex justify-between">
