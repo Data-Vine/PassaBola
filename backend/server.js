@@ -7,6 +7,9 @@ const PORT = 5001;
 app.use(express.json());
 app.use(cors({ origin: ['http://localhost:5173'] }));
 
+// Registrar rotas de notícias
+app.use('/api', require('./news'));
+
 // Store em memória
 const store = {
   teams: [],

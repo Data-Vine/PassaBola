@@ -32,7 +32,7 @@ const LoginPage = ({ onLogin }) => {
       if (response.ok) {
         localStorage.setItem('token', data.token);
         onLogin();
-        navigate('/admin');
+        navigate('../admin', { relative: 'path' });
       } else {
         setError(data.error || 'Credenciais inválidas');
       }

@@ -14,7 +14,8 @@
   "type": "commonjs",
   "dependencies": {
     "cors": "^2.8.5",
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "newsapi": "^2.4.1"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
