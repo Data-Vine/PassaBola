@@ -1,0 +1,27 @@
+[
+  {
+    "id": "insc_1761363312122",
+    "userId": 1761340117708,
+    "time": {
+      "nome": "Time Teste",
+      "cidade": "S�o Paulo"
+    },
+    "responsavel": {
+      "nome": "Jo�o Silva",
+      "cpf": "12345678900",
+      "telefone": "11999999999",
+      "email": "joao@teste.com"
+    },
+    "atletas": [
+      {
+        "nome": "Maria Silva",
+        "dataNascimento": "2000-01-01",
+        "cpf": "98765432100",
+        "posicao": "Atacante"
+      }
+    ],
+    "status": "pendente",
+    "criadoEm": "2025-10-25T03:35:12.121Z",
+    "atualizadoEm": "2025-10-25T03:35:12.121Z"
+  }
+]

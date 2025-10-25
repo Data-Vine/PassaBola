@@ -1,18 +1,26 @@
 import React, { useState } from 'react';
 import { Routes, Route, Navigate, NavLink, useNavigate, Link, useLocation } from 'react-router-dom';
-import { Trophy, Users, Camera, Radio, Menu, X, ChevronRight, MapPin, Calendar, Clock, LogIn, Shield, LogOut, Newspaper } from 'lucide-react';
+import { Trophy, Users, Camera, Radio, Menu, X, ChevronRight, MapPin, Calendar, Clock, LogIn, Shield, LogOut, Newspaper, FileText } from 'lucide-react';
 import HomePage from '../components/HomePage.jsx';
 import RegistrationPage from '../components/RegistrationPage.jsx';
+import RegisterPage from '../components/RegisterPage.jsx';
 import TournamentPage from '../components/TournamentPage.jsx';
 import GalleryPage from '../components/GalleryPage.jsx';
 import LivePanelPage from '../components/LivePanelPage.jsx';
 import LoginPage from '../components/LoginPage.jsx';
 import AdminPanelPage from '../components/AdminPanelPage.jsx';
-import RequireAuth from '../components/RequireAuth.jsx';
+import ProtectedRoute from '../components/ProtectedRoute.jsx';
+import AdminRoute from '../components/AdminRoute.jsx';
+import MinhasInscricoes from '../pages/MinhasInscricoes.jsx';
+import EditarInscricao from '../pages/EditarInscricao.jsx';
 
 function CopaApp() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(() => !!localStorage.getItem('token'));
+  const [isLoggedIn, setIsLoggedIn] = useState(() => !!localStorage.getItem('passabola:token'));
+  
+  // Obter dados do usuário
+  const user = JSON.parse(localStorage.getItem('passabola:user') || 'null');
+  const isAdmin = user?.role === 'admin';
 
   // Helper para gerar caminhos absolutos da Copa
   const copaPath = (p = '') => `/copa/${String(p).replace(/^\/+/, '')}`;
@@ -26,7 +34,8 @@ function CopaApp() {
   ];
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem('passabola:token');
+    localStorage.removeItem('passabola:user');
     setIsLoggedIn(false);
     setMobileMenuOpen(false);
   };
@@ -83,20 +92,40 @@ function CopaApp() {
             <div className="hidden md:flex items-center space-x-4">
               {isLoggedIn ? (
                 <>
+                  {/* Minhas Inscrições (qualquer usuário logado) */}
                   <NavLink
-                    to={copaPath('admin')}
+                    to={copaPath('minhas-inscricoes')}
                     end
                     className={({ isActive }) =>
                       `flex items-center space-x-2 px-3 py-2 rounded-lg font-medium transition-colors ${
                         isActive
-                          ? 'text-purple-600 bg-purple-50'
-                          : 'text-gray-700 hover:text-purple-600 hover:bg-gray-50'
+                          ? 'text-blue-600 bg-blue-50'
+                          : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
                       }`
                     }
                   >
-                    <Shield className="h-4 w-4" />
-                    <span>Painel</span>
+                    <FileText className="h-4 w-4" />
+                    <span>Minhas Inscrições</span>
                   </NavLink>
+                  
+                  {/* Painel Admin (somente admin) */}
+                  {isAdmin && (
+                    <NavLink
+                      to={copaPath('admin')}
+                      end
+                      className={({ isActive }) =>
+                        `flex items-center space-x-2 px-3 py-2 rounded-lg font-medium transition-colors ${
+                          isActive
+                            ? 'text-purple-600 bg-purple-50'
+                            : 'text-gray-700 hover:text-purple-600 hover:bg-gray-50'
+                        }`
+                      }
+                    >
+                      <Shield className="h-4 w-4" />
+                      <span>Painel</span>
+                    </NavLink>
+                  )}
+                  
                   <button
                     onClick={handleLogout}
                     className="flex items-center space-x-2 px-4 py-2 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors"
@@ -164,21 +193,42 @@ function CopaApp() {
               <div className="border-t border-gray-200 pt-2 mt-2">
                 {isLoggedIn ? (
                   <>
+                    {/* Minhas Inscrições (qualquer usuário logado) */}
                     <NavLink
-                      to={copaPath('admin')}
+                      to={copaPath('minhas-inscricoes')}
                       end
                       onClick={() => setMobileMenuOpen(false)}
                       className={({ isActive }) =>
                         `flex items-center space-x-3 px-3 py-2 rounded-lg font-medium transition-colors ${
                           isActive
-                            ? 'text-purple-600 bg-purple-50'
-                            : 'text-gray-700 hover:text-purple-600 hover:bg-gray-50'
+                            ? 'text-blue-600 bg-blue-50'
+                            : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
                         }`
                       }
                     >
-                      <Shield className="h-5 w-5" />
-                      <span>Painel Admin</span>
+                      <FileText className="h-5 w-5" />
+                      <span>Minhas Inscrições</span>
                     </NavLink>
+                    
+                    {/* Painel Admin (somente admin) */}
+                    {isAdmin && (
+                      <NavLink
+                        to={copaPath('admin')}
+                        end
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={({ isActive }) =>
+                          `flex items-center space-x-3 px-3 py-2 rounded-lg font-medium transition-colors ${
+                            isActive
+                              ? 'text-purple-600 bg-purple-50'
+                              : 'text-gray-700 hover:text-purple-600 hover:bg-gray-50'
+                          }`
+                        }
+                      >
+                        <Shield className="h-5 w-5" />
+                        <span>Painel Admin</span>
+                      </NavLink>
+                    )}
+                    
                     <button
                       onClick={handleLogout}
                       className="w-full flex items-center space-x-3 px-3 py-2 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors"
@@ -212,12 +262,41 @@ function CopaApp() {
         <Route path="gallery" element={<GalleryPage />} />
         <Route path="live" element={<LivePanelPage />} />
         <Route path="login" element={<LoginPage onLogin={() => setIsLoggedIn(true)} />} />
+        <Route path="cadastro" element={<RegisterPage />} />
+        
+        {/* Rotas protegidas - usuário logado */}
+        <Route 
+          path="minhas-inscricoes" 
+          element={
+            <ProtectedRoute>
+              <MinhasInscricoes />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="inscricao/nova" 
+          element={
+            <ProtectedRoute>
+              <EditarInscricao />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="inscricao/:id" 
+          element={
+            <ProtectedRoute>
+              <EditarInscricao />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Rotas admin */}
         <Route 
           path="admin" 
           element={
-            <RequireAuth>
+            <AdminRoute>
               <AdminPanelPage />
-            </RequireAuth>
+            </AdminRoute>
           } 
         />
       </Routes>

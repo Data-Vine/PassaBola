@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Trophy, Eye, EyeOff, LogIn } from 'lucide-react';
 import ErrorBanner from './ui/ErrorBanner.jsx';
-
-const API = 'http://localhost:5001/api';
+import { login } from '../lib/api.js';
 
 const LoginPage = ({ onLogin }) => {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [senha, setSenha] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -19,25 +18,16 @@ const LoginPage = ({ onLogin }) => {
     setLoading(true);
 
     try {
-      const response = await fetch(`${API}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        localStorage.setItem('token', data.token);
-        onLogin();
-        navigate('../admin', { relative: 'path' });
+      const user = await login(email.trim(), senha);
+      onLogin();
+      // Redirecionar baseado no role
+      if (user?.role === 'admin') {
+        navigate('/copa/admin');
       } else {
-        setError(data.error || 'Credenciais inválidas');
+        navigate('/copa/minhas-inscricoes');
       }
     } catch (err) {
-      setError('Erro de conexão. Tente novamente.');
+      setError(err.message || 'Erro ao entrar');
     } finally {
       setLoading(false);
     }
@@ -92,10 +82,10 @@ const LoginPage = ({ onLogin }) => {
                   type={showPassword ? 'text' : 'password'}
                   autoComplete="current-password"
                   required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  value={senha}
+                  onChange={(e) => setSenha(e.target.value)}
                   className="block w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500"
-                  placeholder="admin"
+                  placeholder="Digite sua senha"
                 />
                 <button
                   type="button"
@@ -136,9 +126,22 @@ const LoginPage = ({ onLogin }) => {
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <h4 className="text-sm font-medium text-blue-900 mb-2">Credenciais de Demo:</h4>
             <div className="text-sm text-blue-700">
-              <p><strong>Email:</strong> admin@local</p>
-              <p><strong>Senha:</strong> admin</p>
+              <p><strong>Email:</strong> admin@passabola.com</p>
+              <p><strong>Senha:</strong> admin123</p>
             </div>
+          </div>
+
+          {/* Link para cadastro */}
+          <div className="text-center">
+            <p className="text-sm text-gray-600">
+              Não tem conta?{" "}
+              <Link
+                to="/copa/cadastro"
+                className="font-medium text-green-600 hover:text-green-500"
+              >
+                Cadastre-se
+              </Link>
+            </p>
           </div>
         </form>
       </div>

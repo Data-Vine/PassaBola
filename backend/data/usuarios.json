@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1761340117708,
+    "nome": "Administrador",
+    "email": "admin@passabola.com",
+    "senha": "$2b$10$.J6iSSmCO/9m46M7qn8HWeoW7Dva9FOC8Fgmk7RJy1LMNZgoZnyuK",
+    "role": "admin"
+  },
+  {
+    "id": 1761417021838,
+    "nome": "Joao Silva",
+    "email": "joao@teste.com",
+    "senha": "$2b$10$qws3Job5zshJ/McZ32KnBOOpXjGsw/7fm1EbiYAdapYmq1Z.HOAHC",
+    "role": "capita"
+  }
+]

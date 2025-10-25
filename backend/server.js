@@ -1,14 +1,19 @@
 const express = require('express');
 const cors = require('cors');
+const bcrypt = require('bcryptjs');
 
 const app = express();
 const PORT = 5001;
 
-app.use(express.json());
-app.use(cors({ origin: ['http://localhost:5173'] }));
+// Middlewares
+app.use(cors());
+app.use(express.json({ limit: "1mb" }));
 
-// Registrar rotas de notícias
+// Registrar rotas
 app.use('/api', require('./news'));
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/minhas-inscricoes', require('./routes/inscricoesUser'));
+app.use('/api/admin/inscricoes', require('./routes/inscricoesAdmin'));
 
 // Store em memória
 const store = {
@@ -19,28 +24,28 @@ const store = {
 };
 let nextTeamId = 1;
 
-// Router /api
-app.post('/api/auth/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    
-    if (email === 'admin@local' && password === 'admin') {
-      return res.json({ token: 'demo-1' });
-    }
-    
-    return res.status(401).json({ error: 'credenciais inválidas' });
-  } catch (err) {
-    console.error('Erro no login:', err);
-    res.status(500).json({ error: 'erro interno' });
+// Seed de admin
+(async () => {
+  const { listarUsuarios, criarUsuario } = require('./lib/storage/usuariosStore');
+  const usuarios = await listarUsuarios();
+  
+  if (usuarios.length === 0) {
+    const senhaHash = await bcrypt.hash('admin123', 10);
+    await criarUsuario({
+      nome: 'Administrador',
+      email: 'admin@passabola.com',
+      senhaHash,
+      role: 'admin',
+    });
   }
-});
+})();
 
+// Router /api
 app.get('/api/status', async (req, res) => {
   try {
     res.json({ ok: true, time: new Date().toISOString() });
   } catch (err) {
-    console.error('Erro no status:', err);
-    res.status(500).json({ error: 'erro interno' });
+    res.status(500).json({ erro: 'Erro interno' });
   }
 });
 
@@ -48,8 +53,7 @@ app.get('/api/teams', async (req, res) => {
   try {
     res.json(store.teams);
   } catch (err) {
-    console.error('Erro ao buscar times:', err);
-    res.status(500).json({ error: 'erro interno' });
+    res.status(500).json({ erro: 'Erro interno' });
   }
 });
 
@@ -58,7 +62,7 @@ app.post('/api/teams', async (req, res) => {
     const { name, city } = req.body;
     
     if (!name || typeof name !== 'string' || name.trim() === '') {
-      return res.status(400).json({ error: 'Nome do time é obrigatório' });
+      return res.status(400).json({ erro: 'Nome do time é obrigatório' });
     }
     
     const newTeam = {
@@ -71,8 +75,7 @@ app.post('/api/teams', async (req, res) => {
     store.teams.push(newTeam);
     res.status(201).json(newTeam);
   } catch (err) {
-    console.error('Erro ao criar time:', err);
-    res.status(500).json({ error: 'erro interno' });
+    res.status(500).json({ erro: 'Erro interno' });
   }
 });
 
@@ -80,8 +83,7 @@ app.get('/api/tournament', async (req, res) => {
   try {
     res.json({ matches: store.matches });
   } catch (err) {
-    console.error('Erro ao buscar tabela:', err);
-    res.status(500).json({ error: 'erro interno' });
+    res.status(500).json({ erro: 'Erro interno' });
   }
 });
 
@@ -89,8 +91,7 @@ app.get('/api/gallery', async (req, res) => {
   try {
     res.json(store.gallery);
   } catch (err) {
-    console.error('Erro ao buscar galeria:', err);
-    res.status(500).json({ error: 'erro interno' });
+    res.status(500).json({ erro: 'Erro interno' });
   }
 });
 
@@ -98,19 +99,17 @@ app.get('/api/live', async (req, res) => {
   try {
     res.json(store.live);
   } catch (err) {
-    console.error('Erro ao buscar jogos ao vivo:', err);
-    res.status(500).json({ error: 'erro interno' });
+    res.status(500).json({ erro: 'Erro interno' });
   }
 });
 
 // 404 e erro genérico
 app.use((req, res) => {
-  res.status(404).json({ error: 'rota não encontrada' });
+  res.status(404).json({ erro: 'Rota não encontrada' });
 });
 
 app.use((err, req, res, _next) => {
-  console.error(err);
-  res.status(500).json({ error: 'erro interno' });
+  res.status(500).json({ erro: 'Erro interno' });
 });
 
 app.listen(PORT, () => {
