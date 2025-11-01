@@ -14,6 +14,7 @@ app.use('/api', require('./news'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/minhas-inscricoes', require('./routes/inscricoesUser'));
 app.use('/api/admin/inscricoes', require('./routes/inscricoesAdmin'));
+app.use('/api/iot', require('./routes/iot'));
 
 // Store em memória
 const store = {
