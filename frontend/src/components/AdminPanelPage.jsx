@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Shield, Server, Users, Trophy, Camera, Radio, CheckCircle, AlertCircle } from 'lucide-react';
 import ErrorBanner from './ui/ErrorBanner.jsx';
-
-const API = 'http://localhost:5001/api';
+import { apiFetch } from '../lib/api.js';
 
 const AdminPanelPage = () => {
   const [status, setStatus] = useState(null);
@@ -13,7 +12,7 @@ const AdminPanelPage = () => {
     const fetchStatus = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${API}/status`);
+        const response = await apiFetch('/api/status');
         
         if (!response.ok) {
           let body = {};

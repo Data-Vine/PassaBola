@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Radio, Play, Clock, MapPin, Users, Trophy, Target, AlertCircle, Calendar } from 'lucide-react';
 import ErrorBanner from './ui/ErrorBanner.jsx';
-
-const API = 'http://localhost:5001/api';
+import { apiFetch } from '../lib/api.js';
 
 const LivePanelPage = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -26,7 +25,7 @@ const LivePanelPage = () => {
     const fetchMatches = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${API}/live`);
+        const response = await apiFetch('/api/live');
         
         if (!response.ok) {
           let body = {};

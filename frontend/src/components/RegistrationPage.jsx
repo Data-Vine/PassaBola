@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Mail, Phone, MapPin, Calendar, Trophy, CheckCircle, AlertCircle, Upload, FileText, Camera, User } from 'lucide-react';
 import ErrorBanner from './ui/ErrorBanner.jsx';
-
-const API = 'http://localhost:5001/api';
+import { apiFetch } from '../lib/api.js';
 
 const RegistrationPage = () => {
   const [formData, setFormData] = useState({
@@ -31,7 +30,7 @@ const RegistrationPage = () => {
     const fetchTeams = async () => {
       try {
         setTeamsLoading(true);
-        const response = await fetch(`${API}/teams`);
+        const response = await apiFetch('/api/teams');
         
         if (!response.ok) {
           let body = {};
@@ -140,7 +139,7 @@ const RegistrationPage = () => {
       }
 
       // Submit team registration
-      const response = await fetch(`${API}/teams`, {
+      const response = await apiFetch('/api/teams', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

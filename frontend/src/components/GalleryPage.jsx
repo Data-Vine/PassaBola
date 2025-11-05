@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Camera, Filter, Search, X, Heart, Share, Download, Calendar, MapPin } from 'lucide-react';
 import ErrorBanner from './ui/ErrorBanner.jsx';
-
-const API = 'http://localhost:5001/api';
+import { apiFetch } from '../lib/api.js';
 
 const GalleryPage = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -17,7 +16,7 @@ const GalleryPage = () => {
     const fetchPhotos = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${API}/gallery`);
+        const response = await apiFetch('/api/gallery');
         
         if (!response.ok) {
           let body = {};

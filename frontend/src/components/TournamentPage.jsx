@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Trophy, Calendar, Clock, MapPin, Users, Target, Award, ChevronDown, ChevronUp } from 'lucide-react';
 import ErrorBanner from './ui/ErrorBanner.jsx';
-
-const API = 'http://localhost:5001/api';
+import { apiFetch } from '../lib/api.js';
 
 const TournamentPage = () => {
   const [selectedGroup, setSelectedGroup] = useState('A');
@@ -17,7 +16,7 @@ const TournamentPage = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${API}/tournament`);
+        const response = await apiFetch('/api/tournament');
         
         if (!response.ok) {
           let body = {};

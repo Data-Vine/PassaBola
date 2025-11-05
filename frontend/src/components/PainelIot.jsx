@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Activity, Droplet, TrendingUp, AlertTriangle, Clock } from "lucide-react";
+import { apiFetch } from "../lib/api.js";
 
 /**
  * Painel de monitoramento IoT em tempo real
@@ -13,7 +14,7 @@ export default function PainelIot() {
   // Buscar dados do backend
   const buscarDados = async () => {
     try {
-      const response = await fetch("http://localhost:5001/api/iot/status");
+      const response = await apiFetch("/api/iot/status");
       
       if (!response.ok) {
         throw new Error("Erro ao buscar dados IoT");

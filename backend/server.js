@@ -2,12 +2,34 @@ const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 
-const app = express();
-const PORT = 5001;
+// Carregar .env.local apenas em desenvolvimento
+if (process.env.NODE_ENV !== "production") {
+  try {
+    require("dotenv").config({ path: ".env.local" });
+  } catch {}
+}
 
-// Middlewares
-app.use(cors());
+const app = express();
+const PORT = process.env.PORT || 5001;
+
+// CORS controlado por variável de ambiente
+const allowed = (process.env.CORS_ORIGIN || "")
+  .split(",")
+  .map(s => s.trim())
+  .filter(Boolean);
+
+app.use(cors({
+  origin: (origin, cb) => {
+    if (!origin || allowed.length === 0 || allowed.includes(origin)) return cb(null, true);
+    return cb(new Error("Not allowed by CORS"));
+  },
+  credentials: true
+}));
+
 app.use(express.json({ limit: "1mb" }));
+
+// Health check
+app.get("/healthz", (_req, res) => res.status(200).send("ok"));
 
 // Registrar rotas
 app.use('/api', require('./news'));
